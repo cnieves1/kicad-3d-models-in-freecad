@@ -48,7 +48,7 @@ __title__ = "make Standoff 3D models"
 __author__ = "maurice and hyOzd"
 __Comment__ = 'make Standoff Caps 3D models exported to STEP and VRML for Kicad StepUP script'
 
-___ver___ = "1.3.2 10/02/2017"
+___ver___ = "1.3.3 23/01/2020"
 
 # maui import cadquery as cq
 # maui from Helpers import show
@@ -94,7 +94,11 @@ LIST_license = ["",]
 # Import cad_tools
 import cq_cad_tools
 # Reload tools
-reload(cq_cad_tools)
+try:
+    reload(cq_cad_tools)
+except:
+    import importlib
+    importlib.reload(cq_cad_tools)
 # Explicitly load all needed functions
 from cq_cad_tools import FuseObjs_wColors, GetListOfObjects, restore_Main_Tools, \
  exportSTEP, close_CQ_Example, exportVRML, saveFCdoc, z_RotateObject, Color_Objects, \
@@ -121,7 +125,7 @@ checkRequirements(cq)
 try:
     close_CQ_Example(App, Gui)
 except: # catch *all* exceptions
-    print "CQ 030 doesn't open example file"
+    print ("CQ 030 doesn't open example file")
 
 import cq_parameters  # modules parameters
 from cq_parameters import *
@@ -135,6 +139,7 @@ def make_standoff(params):
     shape = params.shape # Shape can be 'Round' or 'Hex'
     rot = params.rotation
     dest_dir_pref = params.dest_dir_prefix
+    
     if shape == 'Hex':
         a = OD/sqrt(3)
         body = cq.Workplane("XY").polygon(6, a*2).extrude(H)
@@ -144,7 +149,10 @@ def make_standoff(params):
         body = body.cut(cq.Workplane("XY").circle(ID/2).extrude(H))
     body = body.edges(">Z").fillet(a/20)
     body = body.edges("<Z").fillet(a/20)
-    
+    if params.stud_H > 0:
+        body = body.union(cq.Workplane("XY").circle(ID/2).extrude(-params.stud_H-0.5).translate((0.0,0.0,0.5)))
+        body = body.edges("<Z").fillet(a/20)
+
     #show(body)
     #show(leads)
     #stop
@@ -196,10 +204,11 @@ if __name__ == "__main__" or __name__ == "main_generator":
             print("Parameters for %s doesn't exist in 'all_params', skipping." % variant)
             continue
         ModelName = all_params[variant].modelName
-        CheckedModelName = ModelName.replace('.', '').replace('-', '_').replace('(', '').replace(')', '')
+        #CheckedModelName = ModelName.replace('.', '').replace('-', '_').replace('(', '').replace(')', '')
+        CheckedModelName = ModelName.replace('-', '_').replace('(', '').replace(')', '')
         Newdoc = App.newDocument(CheckedModelName)
-        App.setActiveDocument(CheckedModelName)
-        Gui.ActiveDocument=Gui.getDocument(CheckedModelName)
+        App.setActiveDocument(Newdoc.Name)
+        Gui.ActiveDocument=Gui.getDocument(Newdoc.Name)
         #body, base, mark, pins = make_rect_th(all_params[variant])
         body= make_standoff(all_params[variant]) #body, base, mark, pins, top
         
