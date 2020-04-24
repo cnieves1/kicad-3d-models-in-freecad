@@ -23,6 +23,8 @@ Params = namedtuple("Params", [
     'fp_s',  # True for circular pinmark, False for square pinmark (useful for diodes)
     'fp_r', # first pin indicator radius, set to 0.0 to remove first pin indicator
     'fp_d', # first pin indicator distance from edge
+    'fp_dx', # first pin indicator distance from X edge
+    'fp_dy', # first pin indicator distance from Y edge
     'fp_z', # first pin indicator depth
     'ef',   # fillet of edges
     'cce',  # chamfer of the epad 1st pin corner
@@ -42,7 +44,8 @@ Params = namedtuple("Params", [
     'excluded_pins', #pins to exclude
     'modelName', #modelName
     'rotation', #rotation if required
-    'dest_dir_prefix', #destination dir prefixD2 = params.epad[0]
+    'dest_dir_prefix', #destination dir prefixD2 = params.epad[0],
+    'body_color_key', # body color key if not None
     'pin_shapes',   # coords for pin shapes as [(x,y)]
 ])
 Params.__new__.__defaults__ = (None,) * len(Params._fields)
