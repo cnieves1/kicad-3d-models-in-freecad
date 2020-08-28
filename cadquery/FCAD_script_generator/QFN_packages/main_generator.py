@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 #
 # This is derived from a cadquery script for generating QFP models in X3D format.
 #
@@ -48,12 +48,13 @@ __title__ = "make QFN ICs 3D models"
 __author__ = "maurice and hyOzd"
 __Comment__ = 'make QFN ICs 3D models exported to STEP and VRML for Kicad StepUP script'
 
-___ver___ = "1.0.5 25/Feb/2017"
+___ver___ = "1.0.6 18/06/2020"
 
 ###ToDo: QFN with ARC pad, exposed pad with chamfer
 
 # maui import cadquery as cq
 # maui from Helpers import show
+import math
 from math import tan, radians, sqrt
 try:
     from math import isclose
@@ -132,15 +133,13 @@ LIST_license = ["",]
 # Import cad_tools
 import cq_cad_tools
 # Reload tools
-try:
-    reload(cq_cad_tools)
-except:
-    import importlib
-    importlib.reload(cq_cad_tools)
+from cq_cad_tools import reload_lib
+reload_lib(cq_cad_tools)
+
 # Explicitly load all needed functions
 from cq_cad_tools import FuseObjs_wColors, GetListOfObjects, restore_Main_Tools, \
  exportSTEP, close_CQ_Example, exportVRML, saveFCdoc, z_RotateObject, Color_Objects, \
- CutObjs_wColors, checkRequirements
+ CutObjs_wColors, checkRequirements, SimpleCopy_wColors
 
 try:
     # Gui.SendMsgToActiveView("Run")
@@ -157,11 +156,6 @@ except: # catch *all* exceptions
 
 #checking requirements
 checkRequirements(cq)
-
-try:
-    close_CQ_Example(App, Gui)
-except: # catch *all* exceptions
-    print ("CQ 030 doesn't open example file")
 
 import cq_parameters  # modules parameters
 from cq_parameters import *
@@ -272,9 +266,9 @@ def make_qfn(params):
             fp_dy = 0
 
     if ps == 'concave' or ps == 'cshaped':
-        if npy is not 0:
+        if npy != 0:
             fp_dx = fp_d+L-A1/2
-        if npx is not 0:
+        if npx != 0:
             fp_dy = fp_d+L-A1/2
     if fp_r == 0:
         global place_pinMark
@@ -499,7 +493,7 @@ if __name__ == "__main__" or __name__ == "main_generator":
 
         FreeCAD.Console.PrintMessage('\r\n'+variant)
         if not variant in all_params:
-            print("Parameters for %s doesn't exist in 'all_params', skipping." % variant)
+            FreeCAD.Console.PrintMessage("Parameters for %s doesn't exist in 'all_params', skipping." % variant)
             continue
         ModelName = all_params[variant].modelName
         CheckedModelName = ModelName.replace('.', '').replace('-', '_').replace('(', '').replace(')', '')
@@ -553,6 +547,7 @@ if __name__ == "__main__" or __name__ == "main_generator":
         objs=GetListOfObjects(FreeCAD, doc)
         FuseObjs_wColors(FreeCAD, FreeCADGui,
                         doc.Name, objs[0].Name, objs[1].Name)
+        FreeCAD.ActiveDocument.recompute()
         doc.Label=CheckedModelName
         objs=GetListOfObjects(FreeCAD, doc)
         objs[0].Label=CheckedModelName
